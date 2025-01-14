@@ -1,0 +1,22 @@
+{
+  "name": "pm2-opensearch",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/pm2-log-track.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@opensearch-project/opensearch": "^2.13.0",
+    "pino": "^8.21.0",
+    "pino-pretty": "^10.3.1",
+    "pm2": "^5.4.3",
+    "pmx": "^1.6.7"
+  },
+  "config": {
+    "endpoint": "",
+    "show-send-stat": false
+  }
+}
