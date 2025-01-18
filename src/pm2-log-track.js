@@ -89,6 +89,7 @@ pm2.Client.launchBus((err, bus) => {
 				data = parse_data(msg.data)
 			} catch (err) {
 				logger.error({
+					process: msg.process,
 					err,
 					raw: msg.data
 				}, 'log:out parse')
