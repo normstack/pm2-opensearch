@@ -32,16 +32,24 @@ const client = new Client({
 	Connection,
 })
 
-function parse_data(raw, extra) {
+function parse_data(name, raw, extra) {
 	const lines = raw?.split('\n')
 
 	return lines
 		.filter(x => !!x)
 		.map(x => {
-			const buf = JSON.parse(x)
-			return {
-				...buf,
-				...extra,
+			try {
+				const buf = JSON.parse(x)
+				return {
+					...buf,
+					...extra,
+				}
+			} catch (err) {
+				logger.error({ name, raw: x, err }, 'parse_data')
+				return {
+					raw: x,
+					...extra,
+				}
 			}
 		})
 }
@@ -84,27 +92,13 @@ pm2.Client.launchBus((err, bus) => {
 	bus.on('log:out', (msg) => {
 		if (shouldProcess(msg)) {
 			const datasource = []
-			let data = []
-			try {
-				data = parse_data(msg.data)
-			} catch (err) {
-				logger.error({
-					process: msg.process,
-					err,
-					raw: msg.data
-				}, 'log:out parse')
-
-				data = [{
-					raw: msg.data,
-					time: msg.at,
-				}]
-			}
-
+			const data = parse_data(msg.process.name, msg.data)
+			
 			if (data.length) {
 				for (const item of data) {
 					datasource.push({
 							...item,
-							time: new Date(item.time).toISOString(),
+							time: new Date(item.time || msg.at).toISOString(),
 							stream: 'stdout',
 						},
 					)
