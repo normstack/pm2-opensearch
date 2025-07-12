@@ -1,6 +1,7 @@
 const pm2 = require('pm2')
 const pmx = require('pmx')
 const pino = require('pino')
+const { minimatch } = require('minimatch')
 const { Client, Connection } = require("@opensearch-project/opensearch")
 
 const config = pmx.initModule()
@@ -77,12 +78,12 @@ function send(indexName, datasource) {
 
 function shouldProcess(msg) {
 	if (config.include === '*') {
-		return !ignoreApps.includes(msg.process.name)
+		return !ignoreApps.some(pattern => minimatch(msg.process.name, pattern))
 	} else if (config.exclude === '*') {
-		return listenApps.includes(msg.process.name)
+		return listenApps.some(pattern => minimatch(msg.process.name, pattern))
 	} else {
-		return listenApps.includes(msg.process.name)
-			&& !ignoreApps.includes(msg.process.name)
+		return listenApps.some(pattern => minimatch(msg.process.name, pattern))
+			&& !ignoreApps.some(pattern => minimatch(msg.process.name, pattern))
 	}
 }
 
