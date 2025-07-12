@@ -18,6 +18,8 @@ const listenApps = config.include?.split(',') || []
 
 const ignoreApps = config.exclude?.split(',') || []
 
+const logsBuffers = new Map()
+
 logger.info({
 	config,
 	listenApps,
@@ -91,20 +93,37 @@ pm2.Client.launchBus((err, bus) => {
 
 	bus.on('log:out', (msg) => {
 		if (shouldProcess(msg)) {
-			const datasource = []
-			const data = parse_data(msg.process.name, msg.data)
-			
-			if (data.length) {
-				for (const item of data) {
-					datasource.push({
+			const { name: process_name } = msg.process
+			if (!logsBuffers.has(process_name)) {
+        logsBuffers.set(process_name, '')
+      }
+
+			const buffer = logsBuffers.get(process_name) + msg.data
+			const lines = buffer.split('\n')
+			logsBuffers.set(process_name, lines.pop())
+
+			const datasource = lines
+				.filter(x => !!x)
+				.map(line => {
+					try {
+						const item = JSON.parse(line)
+						return {
 							...item,
-							time: new Date(item.time || msg.at).toISOString(),
+							time: new Date(item.time).toISOString(),
 							stream: 'stdout',
-						},
-					)
-				}
-				
-				send(msg.process.name, datasource)
+						}
+					} catch (err) {
+						logger.error({ process_name, raw: line, err }, 'parse_data')
+						return {
+							raw: line,
+							time: new Date(msg.at).toISOString(),
+							stream: 'stdout',
+						}
+					}
+				})
+			
+			if (datasource.length) {
+				send(process_name, datasource)
 			}
 		}
 	})
