@@ -1,6 +1,6 @@
 {
   "name": "pm2-opensearch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "src/pm2-log-track.js",
   "scripts": {
