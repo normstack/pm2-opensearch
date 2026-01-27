@@ -55,7 +55,8 @@ function parse_data(name, raw, extra) {
 		})
 }
 
-function send(indexName, datasource) {
+function send(name, datasource) {
+	const indexName = name.replace(/:/g, '-')
 	client.helpers
 	.bulk({
 		datasource,
